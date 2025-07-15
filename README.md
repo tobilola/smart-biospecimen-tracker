@@ -8,7 +8,7 @@ A lab-ready **Streamlit** app for tracking biospecimen samples across their life
 
 ## 🚀 Key Features
 
-✅ Register and update biospecimens with metadata (type, volume, location, expiry)  
+✅ Register and update biospecimens with metadata (type, volume, location, expiry) 
 ✅ Store and retrieve records in real time via Firebase Firestore  
 ✅ Generate sample IDs automatically  
 ✅ Visual storage location input  
