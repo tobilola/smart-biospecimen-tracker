@@ -120,5 +120,14 @@ filtered_df = df[
 # ✅ Show table
 if not filtered_df.empty:
     st.dataframe(filtered_df, use_container_width=True)
+    # CSV Export
+csv = filtered_df.to_csv(index=False).encode('utf-8')
+st.download_button(
+    label="⬇️ Download CSV of Samples",
+    data=csv,
+    file_name='biospecimen_samples.csv',
+    mime='text/csv'
+)
+
 else:
     st.warning("No samples match the selected filters.")
