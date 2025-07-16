@@ -26,6 +26,7 @@ with st.form("register_sample"):
 import qrcode
 from PIL import Image
 import io
+import base64
 
 if submitted:
     # Save to Firebase
@@ -43,14 +44,20 @@ if submitted:
     qr_data = f"ID: {sample_id}\nType: {sample_type}\nLocation: {location}\nExpiry: {expiry_date.strftime('%Y-%m-%d')}"
     qr_img = qrcode.make(qr_data)
 
-    # Convert to bytes
-    buf = io.BytesIO()
-    qr_img.save(buf, format="PNG")
-    byte_qr = buf.getvalue()
+    # Convert QR to bytes
+    buffer = io.BytesIO()
+    qr_img.save(buffer, format="PNG")
+    qr_bytes = buffer.getvalue()
 
     # Display QR
     st.subheader("🧬 Sample QR Code")
-    st.image(byte_qr, caption="Scan to retrieve sample info", use_container_width=True)
+    st.image(qr_bytes, caption="Scan to retrieve sample info", use_container_width=True)
+
+    # Download QR
+    b64 = base64.b64encode(qr_bytes).decode()
+    href = f'<a href="data:image/png;base64,{b64}" download="sample_{sample_id}.png">📥 Download QR Code as PNG</a>'
+    st.markdown(href, unsafe_allow_html=True)
+
 
 # -----------------------------
 # View Registered Samples
