@@ -44,32 +44,26 @@ st.subheader("📋 Registered Samples")
 samples_ref = db.collection("samples")
 samples = samples_ref.stream()
 
+import pandas as pd
+
 data = []
 for doc in samples:
     item = doc.to_dict()
-    data.append([
-        item.get("sample_id"),
-        item.get("type"),
-        item.get("volume"),
-        item.get("location"),
-        item.get("expiry"),
-        item.get("created_at")
-    ])
+    data.append({
+        "Sample ID": item.get("sample_id"),
+        "Type": item.get("type"),
+        "Volume (µL)": item.get("volume"),
+        "Storage Location": item.get("location"),
+        "Expiry Date": item.get("expiry"),
+        "Registered At": item.get("created_at")
+    })
 
 if data:
-    st.dataframe(
-        data,
-        column_config={
-            0: "Sample ID",
-            1: "Type",
-            2: "Volume (µL)",
-            3: "Storage Location",
-            4: "Expiry Date",
-            5: "Registered At"
-        },
-        use_container_width=True
-    )
+    df = pd.DataFrame(data)
+    st.dataframe(df, use_container_width=True)
 else:
     st.info("No samples registered yet.")
+
+
 
 
