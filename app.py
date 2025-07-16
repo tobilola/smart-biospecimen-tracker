@@ -12,7 +12,12 @@ with st.form("register_sample"):
     sample_id = st.text_input("Sample ID", value=str(uuid.uuid4())[:8])
     sample_type = st.selectbox("Sample Type", ["Blood", "Tissue", "Saliva", "Urine", "Plasma"])
     volume = st.number_input("Volume (µL)", min_value=0.0)
-    location = st.text_input("Storage Location", placeholder="Freezer A / Shelf 1 / Box 3")
+    freezer = st.selectbox("Freezer", ["Freezer A", "Freezer B", "Freezer C"])
+rack = st.selectbox("Rack", [f"Rack {i}" for i in range(1, 6)])
+shelf = st.selectbox("Shelf", [f"Shelf {i}" for i in range(1, 5)])
+box = st.text_input("Box", placeholder="e.g., Box 6")
+# Combine into a full storage location string
+location = f"{freezer} / {rack} / {shelf} / {box}" 
     expiry_date = st.date_input("Expiry Date")
     submitted = st.form_submit_button("Register")
 
