@@ -2,7 +2,7 @@
 
 A lab-ready **Streamlit** app for tracking biospecimen samples across their lifecycle — from registration to usage, expiry, and archival. Built with Firebase backend, barcode integration, and real-time updates for volume and expiry monitoring.
 
-[![Deploy on Render](https://img.shields.io/badge/Deployed%20on-Render-blue)](https://render.com)
+🔗 [View Live App on Render](https://smart-biospecimen-tracker.onrender.com)
 
 ---
 
