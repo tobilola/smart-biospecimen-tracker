@@ -38,26 +38,45 @@ with st.form("register_sample"):
 # View Registered Samples
 # -----------------------------
 
+import pandas as pd
+from datetime import datetime, timedelta
+
 st.markdown("---")
-st.subheader("📋 Registered Samples")
+st.subheader("📋 Registered Samples with Alerts")
 
 samples_ref = db.collection("samples")
 samples = samples_ref.stream()
 
-import pandas as pd
-
 data = []
 for doc in samples:
     item = doc.to_dict()
+
+    # Parse expiry and volume
+    expiry_raw = item.get("expiry")
+    expiry_date = datetime.strptime(expiry_raw, "%Y-%m-%d")
+    volume = item.get("volume")
+
+    # Determine alerts
+    alerts = []
+    if expiry_date <= datetime.now() + timedelta(days=7):
+        alerts.append("⚠️ Expiring Soon")
+    if volume < 10:
+        alerts.append("⚠️ Low Volume")
+
+    alert_msg = " | ".join(alerts) if alerts else "✅ OK"
+
+    # Build record
     data.append({
         "Sample ID": item.get("sample_id"),
         "Type": item.get("type"),
-        "Volume (µL)": item.get("volume"),
+        "Volume (µL)": volume,
         "Storage Location": item.get("location"),
-        "Expiry Date": item.get("expiry"),
-        "Registered At": item.get("created_at")
+        "Expiry Date": expiry_raw,
+        "Registered At": item.get("created_at"),
+        "⚠️ Alert": alert_msg
     })
 
+# Display
 if data:
     df = pd.DataFrame(data)
     st.dataframe(df, use_container_width=True)
