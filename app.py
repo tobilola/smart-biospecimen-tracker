@@ -23,16 +23,30 @@ with st.form("register_sample"):
     expiry_date = st.date_input("Expiry Date")
     submitted = st.form_submit_button("Register")
 
-    if submitted:
-        db.collection("samples").document(sample_id).set({
-            "sample_id": sample_id,
-            "type": sample_type,
-            "volume": volume,
-            "location": location,
-            "expiry": expiry_date.strftime("%Y-%m-%d"),
-            "created_at": datetime.now().isoformat()
-        })
-        st.success(f"✅ Sample {sample_id} registered successfully!")
+import qrcode
+from PIL import Image
+import io
+
+if submitted:
+    # Save to Firebase
+    db.collection("samples").document(sample_id).set({
+        "sample_id": sample_id,
+        "type": sample_type,
+        "volume": volume,
+        "location": location,
+        "expiry": expiry_date.strftime("%Y-%m-%d"),
+        "created_at": datetime.now().isoformat()
+    })
+    st.success(f"✅ Sample {sample_id} registered successfully!")
+
+    # Generate QR Code data
+    qr_data = f"ID: {sample_id}\nType: {sample_type}\nLocation: {location}\nExpiry: {expiry_date.strftime('%Y-%m-%d')}"
+    qr_img = qrcode.make(qr_data)
+
+    # Display QR
+    st.subheader("🧬 Sample QR Code")
+    st.image(qr_img, caption="Scan to retrieve sample info", use_column_width=False)
+
 
 # -----------------------------
 # View Registered Samples
