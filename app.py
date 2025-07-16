@@ -42,8 +42,9 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 st.markdown("---")
-st.subheader("📋 Registered Samples with Alerts")
+st.subheader("📋 Registered Samples with Filters and Alerts")
 
+# Fetch data from Firestore
 samples_ref = db.collection("samples")
 samples = samples_ref.stream()
 
@@ -51,21 +52,17 @@ data = []
 for doc in samples:
     item = doc.to_dict()
 
-    # Parse expiry and volume
     expiry_raw = item.get("expiry")
     expiry_date = datetime.strptime(expiry_raw, "%Y-%m-%d")
     volume = item.get("volume")
 
-    # Determine alerts
     alerts = []
     if expiry_date <= datetime.now() + timedelta(days=7):
         alerts.append("⚠️ Expiring Soon")
     if volume < 10:
         alerts.append("⚠️ Low Volume")
-
     alert_msg = " | ".join(alerts) if alerts else "✅ OK"
 
-    # Build record
     data.append({
         "Sample ID": item.get("sample_id"),
         "Type": item.get("type"),
@@ -76,13 +73,34 @@ for doc in samples:
         "⚠️ Alert": alert_msg
     })
 
-# Display
-if data:
-    df = pd.DataFrame(data)
-    st.dataframe(df, use_container_width=True)
+# Convert to DataFrame
+df = pd.DataFrame(data)
+
+# ✅ Sidebar filters
+st.sidebar.header("🔍 Filter Samples")
+
+# Sample type filter
+sample_types = df["Type"].unique().tolist()
+selected_types = st.sidebar.multiselect("Sample Type", sample_types, default=sample_types)
+
+# Alert filter
+alert_options = df["⚠️ Alert"].unique().tolist()
+selected_alerts = st.sidebar.multiselect("Alert Status", alert_options, default=alert_options)
+
+# Volume filter
+min_volume, max_volume = float(df["Volume (µL)"].min()), float(df["Volume (µL)"].max())
+volume_range = st.sidebar.slider("Volume Range (µL)", min_value=0.0, max_value=max_volume, value=(min_volume, max_volume))
+
+# ✅ Apply filters
+filtered_df = df[
+    (df["Type"].isin(selected_types)) &
+    (df["⚠️ Alert"].isin(selected_alerts)) &
+    (df["Volume (µL)"] >= volume_range[0]) &
+    (df["Volume (µL)"] <= volume_range[1])
+]
+
+# ✅ Show table
+if not filtered_df.empty:
+    st.dataframe(filtered_df, use_container_width=True)
 else:
-    st.info("No samples registered yet.")
-
-
-
-
+    st.warning("No samples match the selected filters.")
