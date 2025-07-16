@@ -136,5 +136,4 @@ st.download_button(
     mime='text/csv'
 )
 
-else:
-    st.warning("No samples match the selected filters.")
+
