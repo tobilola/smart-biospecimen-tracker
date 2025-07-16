@@ -27,5 +27,38 @@ with st.form("register_sample"):
         })
         st.success(f"✅ Sample {sample_id} registered successfully!")
 
+st.markdown("---")
+st.subheader("📋 Registered Samples")
+
+samples_ref = db.collection("samples")
+samples = samples_ref.stream()
+
+data = []
+for doc in samples:
+    item = doc.to_dict()
+    data.append([
+        item.get("sample_id"),
+        item.get("type"),
+        item.get("volume"),
+        item.get("location"),
+        item.get("expiry"),
+        item.get("created_at")
+    ])
+
+if data:
+    st.dataframe(
+        data,
+        column_config={
+            0: "Sample ID",
+            1: "Type",
+            2: "Volume (µL)",
+            3: "Storage Location",
+            4: "Expiry Date",
+            5: "Registered At"
+        },
+        use_container_width=True
+    )
+else:
+    st.info("No samples registered yet.")
 
 
