@@ -73,12 +73,11 @@ if submitted:
 
     # Generate QR Code
     qr_data = f"ID: {sample_id}\nType: {sample_type}\nLocation: {location}\nExpiry: {expiry_date.strftime('%Y-%m-%d')}"
-    qr_img = qrcode.make(qr_data)
+    qr_img = qrcode.make(qr_data).convert("RGB")  # Ensures it’s a proper PIL Image
+
 
     # Convert QR to bytes
-    buffer = io.BytesIO()
-    qr_img.save(buffer, format="PNG")
-    qr_bytes = buffer.getvalue()
+    c.drawInlineImage(qr_img, 100, 500, width=150, height=150)
 
     # Display QR Code
     st.subheader("🧬 Sample QR Code")
