@@ -58,6 +58,9 @@ if submitted:
     href = f'<a href="data:image/png;base64,{b64}" download="sample_{sample_id}.png">📥 Download QR Code as PNG</a>'
     st.markdown(href, unsafe_allow_html=True)
 
+else:
+    st.info("Fill in the sample form to generate a QR code.")
+
 
 # -----------------------------
 # View Registered Samples
