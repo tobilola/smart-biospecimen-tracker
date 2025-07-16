@@ -2,6 +2,37 @@ import streamlit as st
 from firebase_config import db
 from datetime import datetime
 import uuid
+import qrcode
+import io
+import base64
+
+
+# ✅ NEW: For PDF generation
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+
+# ✅ NEW: Define PDF generator function
+def generate_pdf(sample_id, sample_type, volume, location, expiry_date, qr_img):
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(100, 750, f"Sample ID: {sample_id}")
+    c.drawString(100, 730, f"Type: {sample_type}")
+    c.drawString(100, 710, f"Volume: {volume} µL")
+    c.drawString(100, 690, f"Location: {location}")
+    c.drawString(100, 670, f"Expiry: {expiry_date}")
+
+    # Convert QR image for ReportLab
+    qr_buffer = io.BytesIO()
+    qr_img.save(qr_buffer, format="PNG")
+    qr_buffer.seek(0)
+    c.drawInlineImage(qr_buffer, 100, 500, width=150, height=150)
+
+    c.showPage()
+    c.save()
+    buffer.seek(0)
+    return buffer
+
 
 st.set_page_config(page_title="Smart Biospecimen Tracker", layout="wide")
 
@@ -57,6 +88,12 @@ if submitted:
     b64 = base64.b64encode(qr_bytes).decode()
     href = f'<a href="data:image/png;base64,{b64}" download="sample_{sample_id}.png">📥 Download QR Code as PNG</a>'
     st.markdown(href, unsafe_allow_html=True)
+
+   # ✅ PDF Label Download
+    pdf_buffer = generate_pdf(sample_id, sample_type, volume, location, expiry_date.strftime('%Y-%m-%d'), qr_img)
+    b64_pdf = base64.b64encode(pdf_buffer.read()).decode()
+    pdf_href = f'<a href="data:application/pdf;base64,{b64_pdf}" download="label_{sample_id}.pdf">📄 Download Sample Label as PDF</a>'
+    st.markdown(pdf_href, unsafe_allow_html=True)
 
 
 # -----------------------------
