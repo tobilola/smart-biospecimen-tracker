@@ -39,14 +39,18 @@ if submitted:
     })
     st.success(f"✅ Sample {sample_id} registered successfully!")
 
-    # Generate QR Code data
+    # Generate QR Code
     qr_data = f"ID: {sample_id}\nType: {sample_type}\nLocation: {location}\nExpiry: {expiry_date.strftime('%Y-%m-%d')}"
     qr_img = qrcode.make(qr_data)
 
+    # Convert to bytes
+    buf = io.BytesIO()
+    qr_img.save(buf, format="PNG")
+    byte_qr = buf.getvalue()
+
     # Display QR
     st.subheader("🧬 Sample QR Code")
-    st.image(qr_img, caption="Scan to retrieve sample info", use_column_width=False)
-
+    st.image(byte_qr, caption="Scan to retrieve sample info", use_container_width=True)
 
 # -----------------------------
 # View Registered Samples
