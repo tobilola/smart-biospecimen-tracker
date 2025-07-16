@@ -10,7 +10,7 @@ st.subheader("📦 Register New Sample")
 
 with st.form("register_sample"):
     sample_id = st.text_input("Sample ID", value=str(uuid.uuid4())[:8])
-    sample_type = st.selectbox("Sample Type", ["Blood", Tissue", "Saliva", "Urine", "Plasma"])
+    sample_type = st.selectbox("Sample Type", ["Blood", "Tissue", "Saliva", "Urine", "Plasma"])
     volume = st.number_input("Volume (µL)", min_value=0.0)
     location = st.text_input("Storage Location", placeholder="Freezer A / Shelf 1 / Box 3")
     expiry_date = st.date_input("Expiry Date")
