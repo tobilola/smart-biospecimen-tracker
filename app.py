@@ -1,4 +1,9 @@
 import streamlit as st
+st.set_page_config(
+    page_title="Smart Biospecimen Tracker",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 from firebase_config import db
 from datetime import datetime, timedelta
 import uuid
