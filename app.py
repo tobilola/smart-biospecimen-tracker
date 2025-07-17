@@ -232,7 +232,13 @@ st.plotly_chart(freezer_chart, use_container_width=True)
 # ----------------------------------------
 # 📊 Global Analytics Dashboard (Unfiltered)
 # ----------------------------------------
+# -----------------------------
+# 🌐 Global Analytics Summary (unfiltered)
+# -----------------------------
 st.markdown("### 🌐 Global Sample Analytics (All Data)")
+
+# Ensure 'Expiry Date' is in datetime format
+df["Expiry Date"] = pd.to_datetime(df["Expiry Date"])
 
 global_total = len(df)
 global_expiring = df[df["Expiry Date"] <= (datetime.today() + timedelta(days=7))]
@@ -251,4 +257,5 @@ st.plotly_chart(global_type_chart, use_container_width=True)
 df["Freezer"] = df["Storage Location"].apply(lambda x: x.split(" / ")[0])
 global_freezer_chart = px.pie(df, names="Freezer", title="🌍 Global: Freezer Distribution")
 st.plotly_chart(global_freezer_chart, use_container_width=True)
+
 
