@@ -10,11 +10,12 @@ import pandas as pd
 from google.cloud.firestore import SERVER_TIMESTAMP
 
 def log_sample_activity(sample_id, action, details):
-    db.collection("samples").document(sample_id).collection("activity_log").add({
+    log_entry = {
         "action": action,
         "details": details,
-        "timestamp": SERVER_TIMESTAMP
-    })
+        "timestamp": datetime.now().isoformat()
+    }
+    db.collection("samples").document(sample_id).collection("activity_log").add(log_entry)
 
 # PDF generation
 from reportlab.lib.pagesizes import letter
