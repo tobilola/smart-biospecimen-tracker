@@ -1,17 +1,20 @@
 import streamlit as st
 from firebase_config import db
-from datetime import datetime
+from datetime import datetime, timedelta
 import uuid
 import qrcode
 import io
 import base64
+import pandas as pd
 
-
-# ✅ NEW: For PDF generation
+# PDF generation
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+from PIL import Image
 
-# ✅ NEW: Define PDF generator function
+# --------------------------------
+# PDF label generator function
+# --------------------------------
 def generate_pdf(sample_id, sample_type, volume, location, expiry_date, qr_img):
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=letter)
@@ -22,17 +25,21 @@ def generate_pdf(sample_id, sample_type, volume, location, expiry_date, qr_img):
     c.drawString(100, 690, f"Location: {location}")
     c.drawString(100, 670, f"Expiry: {expiry_date}")
 
-    # ✅ Draw QR code (PIL image only, no buffer)
-    c.drawInlineImage(qr_img, 100, 500, width=150, height=150)
+    # Draw QR image
+    qr_buffer = io.BytesIO()
+    qr_img.save(qr_buffer, format="PNG")
+    qr_buffer.seek(0)
+    c.drawInlineImage(qr_buffer, 100, 500, width=150, height=150)
 
     c.showPage()
     c.save()
     buffer.seek(0)
     return buffer
 
-
+# --------------------------------
+# UI: Register Sample
+# --------------------------------
 st.set_page_config(page_title="Smart Biospecimen Tracker", layout="wide")
-
 st.title("🧬 Smart Biospecimen Lifecycle Tracker")
 st.subheader("📦 Register New Sample")
 
@@ -40,21 +47,13 @@ with st.form("register_sample"):
     sample_id = st.text_input("Sample ID", value=str(uuid.uuid4())[:8])
     sample_type = st.selectbox("Sample Type", ["Blood", "Tissue", "Saliva", "Urine", "Plasma"])
     volume = st.number_input("Volume (µL)", min_value=0.0)
-
     freezer = st.selectbox("Freezer", ["Freezer A", "Freezer B", "Freezer C"])
     rack = st.selectbox("Rack", [f"Rack {i}" for i in range(1, 6)])
     shelf = st.selectbox("Shelf", [f"Shelf {i}" for i in range(1, 5)])
     box = st.text_input("Box", placeholder="e.g., Box 6")
-
     location = f"{freezer} / {rack} / {shelf} / {box}"
-    
     expiry_date = st.date_input("Expiry Date")
     submitted = st.form_submit_button("Register")
-
-import qrcode
-from PIL import Image
-import io
-import base64
 
 if submitted:
     # Save to Firebase
@@ -68,59 +67,49 @@ if submitted:
     })
     st.success(f"✅ Sample {sample_id} registered successfully!")
 
-    # Generate QR Code
+    # QR code
     qr_data = f"ID: {sample_id}\nType: {sample_type}\nLocation: {location}\nExpiry: {expiry_date.strftime('%Y-%m-%d')}"
-    qr_img = qrcode.make(qr_data).convert("RGB")  # Ensures it’s a proper PIL Image
+    qr_img = qrcode.make(qr_data).convert("RGB")
+    qr_buffer = io.BytesIO()
+    qr_img.save(qr_buffer, format="PNG")
+    qr_bytes = qr_buffer.getvalue()
 
-
-    # Convert QR to bytes
-    c.drawInlineImage(qr_img, 100, 500, width=150, height=150)
-
-    # Display QR Code
+    # Display QR
     st.subheader("🧬 Sample QR Code")
     st.image(qr_bytes, caption="Scan to retrieve sample info", use_container_width=True)
 
-    # QR Code Download Button
+    # Download QR
     b64 = base64.b64encode(qr_bytes).decode()
     href = f'<a href="data:image/png;base64,{b64}" download="sample_{sample_id}.png">📥 Download QR Code as PNG</a>'
     st.markdown(href, unsafe_allow_html=True)
 
-   # ✅ PDF Label Download
+    # PDF label
     pdf_buffer = generate_pdf(sample_id, sample_type, volume, location, expiry_date.strftime('%Y-%m-%d'), qr_img)
     b64_pdf = base64.b64encode(pdf_buffer.read()).decode()
     pdf_href = f'<a href="data:application/pdf;base64,{b64_pdf}" download="label_{sample_id}.pdf">📄 Download Sample Label as PDF</a>'
     st.markdown(pdf_href, unsafe_allow_html=True)
 
-
-# -----------------------------
+# --------------------------------
 # View Registered Samples
-# -----------------------------
-
-import pandas as pd
-from datetime import datetime, timedelta
-
+# --------------------------------
 st.markdown("---")
 st.subheader("📋 Registered Samples with Filters and Alerts")
 
-# Fetch data from Firestore
 samples_ref = db.collection("samples")
 samples = samples_ref.stream()
 
 data = []
 for doc in samples:
     item = doc.to_dict()
-
     expiry_raw = item.get("expiry")
-    expiry_date = datetime.strptime(expiry_raw, "%Y-%m-%d")
+    expiry = datetime.strptime(expiry_raw, "%Y-%m-%d")
     volume = item.get("volume")
-
     alerts = []
-    if expiry_date <= datetime.now() + timedelta(days=7):
+    if expiry <= datetime.now() + timedelta(days=7):
         alerts.append("⚠️ Expiring Soon")
     if volume < 10:
         alerts.append("⚠️ Low Volume")
-    alert_msg = " | ".join(alerts) if alerts else "✅ OK"
-
+    alert = " | ".join(alerts) if alerts else "✅ OK"
     data.append({
         "Sample ID": item.get("sample_id"),
         "Type": item.get("type"),
@@ -128,28 +117,21 @@ for doc in samples:
         "Storage Location": item.get("location"),
         "Expiry Date": expiry_raw,
         "Registered At": item.get("created_at"),
-        "⚠️ Alert": alert_msg
+        "⚠️ Alert": alert
     })
 
-# Convert to DataFrame
 df = pd.DataFrame(data)
 
-# ✅ Sidebar filters
+# Sidebar filters
 st.sidebar.header("🔍 Filter Samples")
+types = df["Type"].unique().tolist()
+alerts = df["⚠️ Alert"].unique().tolist()
+selected_types = st.sidebar.multiselect("Sample Type", types, default=types)
+selected_alerts = st.sidebar.multiselect("Alert Status", alerts, default=alerts)
+min_v, max_v = float(df["Volume (µL)"].min()), float(df["Volume (µL)"].max())
+volume_range = st.sidebar.slider("Volume Range (µL)", 0.0, max_v, (min_v, max_v))
 
-# Sample type filter
-sample_types = df["Type"].unique().tolist()
-selected_types = st.sidebar.multiselect("Sample Type", sample_types, default=sample_types)
-
-# Alert filter
-alert_options = df["⚠️ Alert"].unique().tolist()
-selected_alerts = st.sidebar.multiselect("Alert Status", alert_options, default=alert_options)
-
-# Volume filter
-min_volume, max_volume = float(df["Volume (µL)"].min()), float(df["Volume (µL)"].max())
-volume_range = st.sidebar.slider("Volume Range (µL)", min_value=0.0, max_value=max_volume, value=(min_volume, max_volume))
-
-# ✅ Apply filters
+# Filter data
 filtered_df = df[
     (df["Type"].isin(selected_types)) &
     (df["⚠️ Alert"].isin(selected_alerts)) &
@@ -157,16 +139,9 @@ filtered_df = df[
     (df["Volume (µL)"] <= volume_range[1])
 ]
 
-# ✅ Show table
 if not filtered_df.empty:
     st.dataframe(filtered_df, use_container_width=True)
-    # CSV Export
-csv = filtered_df.to_csv(index=False).encode('utf-8')
-st.download_button(
-    label="⬇️ Download CSV of Samples",
-    data=csv,
-    file_name='biospecimen_samples.csv',
-    mime='text/csv'
-)
-
-
+    csv = filtered_df.to_csv(index=False).encode('utf-8')
+    st.download_button("⬇️ Download CSV of Samples", csv, "biospecimen_samples.csv", "text/csv")
+else:
+    st.info("No samples match the current filter.")
