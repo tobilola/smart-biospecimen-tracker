@@ -2,7 +2,7 @@
 import os
 import json
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials, firestore, auth  # ✅ Combine here
 
 # Load Firebase credentials from Render environment variable
 firebase_creds = json.loads(os.environ["FIREBASE_KEY_JSON"])
@@ -11,3 +11,4 @@ firebase_admin.initialize_app(cred)
 
 # Initialize Firestore
 db = firestore.client()
+
