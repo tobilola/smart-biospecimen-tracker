@@ -2,3 +2,5 @@ reportlab
 qrcode
 streamlit
 firebase-admin
+plotly
+
