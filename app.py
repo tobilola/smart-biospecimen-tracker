@@ -7,6 +7,15 @@ import io
 import base64
 import pandas as pd
 
+from google.cloud.firestore import SERVER_TIMESTAMP
+
+def log_sample_activity(sample_id, action, details):
+    db.collection("samples").document(sample_id).collection("activity_log").add({
+        "action": action,
+        "details": details,
+        "timestamp": SERVER_TIMESTAMP
+    })
+
 # PDF generation
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -69,6 +78,12 @@ if submitted:
         "created_at": datetime.now().isoformat()
     })
     st.success(f"✅ Sample {sample_id} registered successfully!")
+
+    log_sample_activity(
+    sample_id,
+    action="register_sample",
+    details=f"Sample registered with volume {volume} µL at {location}."
+)
 
    # Generate QR Code
     qr_data = f"ID: {sample_id}\nType: {sample_type}\nLocation: {location}\nExpiry: {expiry_date.strftime('%Y-%m-%d')}"
