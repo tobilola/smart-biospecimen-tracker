@@ -204,11 +204,10 @@ if not filtered_df.empty:
     st.download_button("⬇️ Download CSV of Samples", csv, "biospecimen_samples.csv", "text/csv")
 else:
     st.info("No samples match the current filter.")
-
 # -----------------------------
-# 📈 Analytics Summary
+# 📈 Analytics Summary (Filtered)
 # -----------------------------
-st.markdown("### 📊 Sample Analytics Summary")
+st.markdown("### 📊 Filtered Sample Analytics")
 
 total_samples = len(filtered_df)
 expiring_soon = filtered_df[filtered_df["⚠️ Alert"].str.contains("Expiring Soon")].shape[0]
@@ -218,4 +217,38 @@ col1, col2, col3 = st.columns(3)
 col1.metric("📦 Total Samples", total_samples)
 col2.metric("⏰ Expiring Soon", expiring_soon)
 col3.metric("🧪 Low Volume", low_volume)
+
+import plotly.express as px
+
+# 📊 Samples by Type (Filtered)
+type_chart = px.bar(filtered_df, x="Type", title="🧬 Sample Count by Type")
+st.plotly_chart(type_chart, use_container_width=True)
+
+# 🧊 Freezer Distribution (Filtered)
+filtered_df["Freezer"] = filtered_df["Location"].apply(lambda x: x.split(" / ")[0])
+freezer_chart = px.pie(filtered_df, names="Freezer", title="🗃️ Freezer Distribution")
+st.plotly_chart(freezer_chart, use_container_width=True)
+
+# ----------------------------------------
+# 📊 Global Analytics Dashboard (Unfiltered)
+# ----------------------------------------
+st.markdown("### 🌐 Global Sample Analytics (All Data)")
+
+global_total = len(df)
+global_expiring = df[df["Expiry Date"] <= (datetime.today() + timedelta(days=7))]
+global_low_vol = df[df["Volume (µL)"] < 10]
+
+col1, col2, col3 = st.columns(3)
+col1.metric("🧮 Total Samples", global_total)
+col2.metric("⚠️ Expiring Soon (7 days)", len(global_expiring))
+col3.metric("🧪 Low Volume (<10 µL)", len(global_low_vol))
+
+# 📊 Global Samples by Type
+global_type_chart = px.bar(df, x="Type", title="📊 Global: Sample Count by Type")
+st.plotly_chart(global_type_chart, use_container_width=True)
+
+# 🧊 Global Freezer Distribution
+df["Freezer"] = df["Storage Location"].apply(lambda x: x.split(" / ")[0])
+global_freezer_chart = px.pie(df, names="Freezer", title="🌍 Global: Freezer Distribution")
+st.plotly_chart(global_freezer_chart, use_container_width=True)
 
