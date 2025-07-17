@@ -204,3 +204,18 @@ if not filtered_df.empty:
     st.download_button("⬇️ Download CSV of Samples", csv, "biospecimen_samples.csv", "text/csv")
 else:
     st.info("No samples match the current filter.")
+
+# -----------------------------
+# 📈 Analytics Summary
+# -----------------------------
+st.markdown("### 📊 Sample Analytics Summary")
+
+total_samples = len(filtered_df)
+expiring_soon = filtered_df[filtered_df["⚠️ Alert"].str.contains("Expiring Soon")].shape[0]
+low_volume = filtered_df[filtered_df["⚠️ Alert"].str.contains("Low Volume")].shape[0]
+
+col1, col2, col3 = st.columns(3)
+col1.metric("📦 Total Samples", total_samples)
+col2.metric("⏰ Expiring Soon", expiring_soon)
+col3.metric("🧪 Low Volume", low_volume)
+
