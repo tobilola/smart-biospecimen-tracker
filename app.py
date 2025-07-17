@@ -9,6 +9,7 @@ import pandas as pd
 
 from google.cloud.firestore import SERVER_TIMESTAMP
 
+# ✅ Log function (add this here)
 def log_sample_activity(sample_id, action, details):
     log_entry = {
         "action": action,
@@ -57,7 +58,7 @@ st.title("🧬 Smart Biospecimen Lifecycle Tracker")
 st.subheader("📦 Register New Sample")
 
 with st.form("register_sample"):
-    sample_id = st.text_input("Sample ID", value=str(uuid.uuid4())[:8])
+    sample_id = st.text_input("Sample ID", value=str(uuid.uuid4())[:8], disabled=True)
     sample_type = st.selectbox("Sample Type", ["Blood", "Tissue", "Saliva", "Urine", "Plasma"])
     volume = st.number_input("Volume (µL)", min_value=0.0)
     freezer = st.selectbox("Freezer", ["Freezer A", "Freezer B", "Freezer C"])
@@ -81,11 +82,15 @@ if submitted:
     st.success(f"✅ Sample {sample_id} registered successfully!")
 
     # ✅ Log activity
-    log_sample_activity(
-        sample_id,
-        action="register_sample",
-        details=f"Sample registered with volume {volume} µL at {location}."
-    )
+    try:
+        log_sample_activity(
+            sample_id,
+            action="register_sample",
+            details=f"Sample registered with volume {volume} µL at {location}."
+        )
+        st.info("📌 Activity logged.")
+    except Exception as e:
+        st.error(f"❌ Logging failed: {e}")
 
     # ✅ Generate QR Code
     qr_data = f"ID: {sample_id}\nType: {sample_type}\nLocation: {location}\nExpiry: {expiry_date.strftime('%Y-%m-%d')}"
