@@ -3,4 +3,5 @@ qrcode
 streamlit
 firebase-admin
 plotly
+pyrebase4
 
