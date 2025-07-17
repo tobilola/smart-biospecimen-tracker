@@ -1,9 +1,5 @@
 import streamlit as st
-st.set_page_config(
-    page_title="Smart Biospecimen Tracker",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
+from auth_utils import login_user, logout_user
 from firebase_config import db
 from datetime import datetime, timedelta
 import uuid
@@ -11,6 +7,28 @@ import qrcode
 import io
 import base64
 import pandas as pd
+
+
+# ✅ Set page config
+st.set_page_config(page_title="Smart Biospecimen Tracker", layout="wide", initial_sidebar_state="collapsed")
+
+# ✅ Check if user is logged in
+if "user" not in st.session_state or not st.session_state["user"]:
+    st.title("🔐 Login to Smart Biospecimen Tracker")
+    email = st.text_input("Email")
+    password = st.text_input("Password", type="password")
+    if st.button("Login"):
+        login_user(email, password)
+else:
+    # ✅ Show logged-in app
+    st.sidebar.markdown(f"👤 Logged in as: `{st.session_state['user']['email']}`")
+    if st.sidebar.button("🚪 Logout"):
+        logout_user()
+        st.experimental_rerun()
+
+    # 👉 Put your full app here — registration form, QR code, analytics, etc.
+    st.title("🧬 Smart Biospecimen Lifecycle Tracker")
+    st.subheader("📦 Register New Sample")
 
 from google.cloud.firestore import SERVER_TIMESTAMP
 
@@ -211,6 +229,15 @@ selected_types = st.sidebar.multiselect("Sample Type", types, default=types)
 selected_alerts = st.sidebar.multiselect("Alert Status", alerts, default=alerts)
 min_v, max_v = float(df["Volume (µL)"].min()), float(df["Volume (µL)"].max())
 volume_range = st.sidebar.slider("Volume Range (µL)", 0.0, max_v, (min_v, max_v))
+
+# -----------------------------
+# 👤 Logged-in User + Logout Button
+# -----------------------------
+if "user" in st.session_state:
+    st.sidebar.markdown(f"👤 Logged in as: `{st.session_state['user']['email']}`")
+    if st.sidebar.button("🚪 Logout"):
+        logout_user()
+        st.experimental_rerun()
 
 # Filter data
 filtered_df = df[
