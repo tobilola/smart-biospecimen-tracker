@@ -53,7 +53,24 @@ def generate_pdf(sample_id, sample_type, volume, location, expiry_date, qr_img):
 # --------------------------------
 # UI: Register Sample
 # --------------------------------
-st.set_page_config(page_title="Smart Biospecimen Tracker", layout="wide")
+import streamlit.components.v1 as components
+
+# Inject CSS for responsive sidebar collapse on small devices
+st.markdown("""
+    <style>
+        @media (max-width: 768px) {
+            [data-testid="stSidebar"] {
+                display: none;
+            }
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+st.set_page_config(
+    page_title="Smart Biospecimen Tracker",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 st.title("🧬 Smart Biospecimen Lifecycle Tracker")
 st.subheader("📦 Register New Sample")
 
