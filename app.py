@@ -92,6 +92,31 @@ if submitted:
     except Exception as e:
         st.error(f"❌ Logging failed: {e}")
 
+    # -------------------------------------
+# 📜 View Activity Log (New Section)
+# -------------------------------------
+st.markdown("---")
+st.subheader("📜 View Sample Activity Log")
+
+sample_id_input = st.text_input("🔍 Enter Sample ID")
+
+if st.button("View Activity Log"):
+    try:
+        log_ref = db.collection("samples").document(sample_id_input).collection("activity_log").order_by("timestamp").stream()
+        logs = [{
+            "Timestamp": doc.to_dict().get("timestamp"),
+            "Action": doc.to_dict().get("action"),
+            "Details": doc.to_dict().get("details")
+        } for doc in log_ref]
+
+        if logs:
+            log_df = pd.DataFrame(logs)
+            st.dataframe(log_df)
+        else:
+            st.warning("No activity found for this sample.")
+    except Exception as e:
+        st.error(f"Error fetching log: {e}")
+
     # ✅ Generate QR Code
     qr_data = f"ID: {sample_id}\nType: {sample_type}\nLocation: {location}\nExpiry: {expiry_date.strftime('%Y-%m-%d')}"
     qr_img = qrcode.make(qr_data).convert("RGB")  # Ensures proper PIL Image
