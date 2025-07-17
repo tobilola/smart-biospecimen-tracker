@@ -22,11 +22,8 @@ def generate_pdf(sample_id, sample_type, volume, location, expiry_date, qr_img):
     c.drawString(100, 690, f"Location: {location}")
     c.drawString(100, 670, f"Expiry: {expiry_date}")
 
-    # Convert QR image for ReportLab
-    qr_buffer = io.BytesIO()
-    qr_img.save(qr_buffer, format="PNG")
-    qr_buffer.seek(0)
-    c.drawInlineImage(qr_buffer, 100, 500, width=150, height=150)
+    # ✅ Draw QR code (PIL image only, no buffer)
+    c.drawInlineImage(qr_img, 100, 500, width=150, height=150)
 
     c.showPage()
     c.save()
