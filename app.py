@@ -7,7 +7,7 @@ import qrcode
 import io
 import base64
 import pandas as pd
-
+from google.cloud.firestore import SERVER_TIMESTAMP
 
 # ✅ Set page config
 st.set_page_config(page_title="Smart Biospecimen Tracker", layout="wide", initial_sidebar_state="collapsed")
@@ -21,16 +21,22 @@ if "user" not in st.session_state or not st.session_state["user"]:
         login_user(email, password)
 else:
     # ✅ Show logged-in app
-    st.sidebar.markdown(f"👤 Logged in as: `{st.session_state['user']['email']}`")
-    if st.sidebar.button("🚪 Logout"):
+    user = st.session_state["user"]
+    st.sidebar.markdown(f"👤 Logged in as: `{user['email']}`")
+
+    # ✅ Show user role if available
+    role = user.get("role", "Technician")
+    st.sidebar.markdown(f"🛡 Role: `{role}`")
+
+    # ✅ Logout button with unique key
+    if st.sidebar.button("🚪 Logout", key="logout_button"):
         logout_user()
         st.experimental_rerun()
 
-    # 👉 Put your full app here — registration form, QR code, analytics, etc.
+    # 👉 Main app begins here
     st.title("🧬 Smart Biospecimen Lifecycle Tracker")
     st.subheader("📦 Register New Sample")
 
-from google.cloud.firestore import SERVER_TIMESTAMP
 
 # ✅ Log function (add this here)
 def log_sample_activity(sample_id, action, details):
