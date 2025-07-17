@@ -225,7 +225,7 @@ type_chart = px.bar(filtered_df, x="Type", title="🧬 Sample Count by Type")
 st.plotly_chart(type_chart, use_container_width=True)
 
 # 🧊 Freezer Distribution (Filtered)
-filtered_df["Freezer"] = filtered_df["Location"].apply(lambda x: x.split(" / ")[0])
+filtered_df["Freezer"] = filtered_df["Storage Location"].apply(lambda x: x.split(" / ")[0])
 freezer_chart = px.pie(filtered_df, names="Freezer", title="🗃️ Freezer Distribution")
 st.plotly_chart(freezer_chart, use_container_width=True)
 
