@@ -69,7 +69,7 @@ with st.form("register_sample"):
     submitted = st.form_submit_button("Register")
 
 if submitted:
-    # Save to Firebase
+    # ✅ Save to Firebase
     db.collection("samples").document(sample_id).set({
         "sample_id": sample_id,
         "type": sample_type,
@@ -80,32 +80,40 @@ if submitted:
     })
     st.success(f"✅ Sample {sample_id} registered successfully!")
 
+    # ✅ Log activity
     log_sample_activity(
-    sample_id,
-    action="register_sample",
-    details=f"Sample registered with volume {volume} µL at {location}."
-)
+        sample_id,
+        action="register_sample",
+        details=f"Sample registered with volume {volume} µL at {location}."
+    )
 
-   # Generate QR Code
+    # ✅ Generate QR Code
     qr_data = f"ID: {sample_id}\nType: {sample_type}\nLocation: {location}\nExpiry: {expiry_date.strftime('%Y-%m-%d')}"
-    qr_img = qrcode.make(qr_data).convert("RGB")  # Ensure QR is a PIL Image
+    qr_img = qrcode.make(qr_data).convert("RGB")  # Ensures proper PIL Image
 
-  # Convert QR to bytes for PNG download
+    # ✅ Convert QR to bytes for PNG download
     buffer = io.BytesIO()
     qr_img.save(buffer, format="PNG")
     qr_bytes = buffer.getvalue()
 
-  # Display QR
+    # ✅ Display QR
     st.subheader("🧬 Sample QR Code")
     st.image(qr_bytes, caption="Scan to retrieve sample info", use_container_width=True)
 
-  # PNG Download
+    # ✅ PNG Download
     b64 = base64.b64encode(qr_bytes).decode()
     href = f'<a href="data:image/png;base64,{b64}" download="sample_{sample_id}.png">📥 Download QR Code as PNG</a>'
     st.markdown(href, unsafe_allow_html=True)
 
-# ✅ PDF Label
-    pdf_buffer = generate_pdf(sample_id, sample_type, volume, location, expiry_date.strftime('%Y-%m-%d'), qr_img)
+    # ✅ PDF Label
+    pdf_buffer = generate_pdf(
+        sample_id,
+        sample_type,
+        volume,
+        location,
+        expiry_date.strftime('%Y-%m-%d'),
+        qr_img
+    )
     b64_pdf = base64.b64encode(pdf_buffer.read()).decode()
     pdf_href = f'<a href="data:application/pdf;base64,{b64_pdf}" download="label_{sample_id}.pdf">📄 Download Sample Label as PDF</a>'
     st.markdown(pdf_href, unsafe_allow_html=True)
