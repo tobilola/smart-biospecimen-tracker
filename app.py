@@ -235,7 +235,7 @@ volume_range = st.sidebar.slider("Volume Range (µL)", 0.0, max_v, (min_v, max_v
 # -----------------------------
 if "user" in st.session_state:
     st.sidebar.markdown(f"👤 Logged in as: `{st.session_state['user']['email']}`")
-    if st.sidebar.button("🚪 Logout"):
+    if st.sidebar.button("🚪 Logout", key="logout_button"):
         logout_user()
         st.experimental_rerun()
 
