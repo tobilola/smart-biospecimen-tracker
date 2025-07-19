@@ -12,33 +12,30 @@ from google.cloud.firestore import SERVER_TIMESTAMP
 # ✅ Set page config
 st.set_page_config(page_title="Smart Biospecimen Tracker", layout="wide", initial_sidebar_state="collapsed")
 
-# ✅ Check if user is logged in
-if "user" not in st.session_state or not st.session_state["user"]:
+# ✅ Login page
+def show_login_page():
     st.title("🔐 Login to Smart Biospecimen Tracker")
     email = st.text_input("Email")
     password = st.text_input("Password", type="password")
     if st.button("Login", key="login_button"):
         login_user(email, password)
 
-else:
-    # ✅ Show logged-in app
+# ✅ Main app (Sample Registration etc)
+def show_main_app():
     user = st.session_state["user"]
     st.sidebar.markdown(f"👤 Logged in as: `{user['email']}`")
 
-    # ✅ Show user role if available
     role = user.get("role", "Technician")
     st.sidebar.markdown(f"🛡 Role: `{role}`")
 
-    # ✅ Logout button with unique key
     if st.sidebar.button("🚪 Logout", key="logout_button"):
         logout_user()
         st.experimental_rerun()
 
-    # 👉 Main app begins here
     st.title("🧬 Smart Biospecimen Lifecycle Tracker")
     st.subheader("📦 Register New Sample")
 
-    # ✅ Log function (MUST be inside the `else` block)
+    # ✅ Log activity function (optional)
     def log_sample_activity(sample_id, action, details):
         log_entry = {
             "action": action,
@@ -77,7 +74,6 @@ def generate_pdf(sample_id, sample_type, volume, location, expiry_date, qr_img):
     c.save()
     buffer.seek(0)
     return buffer
-
 
 # --------------------------------
 # UI: Register Sample
@@ -314,3 +310,8 @@ global_freezer_chart = px.pie(df, names="Freezer", title="🌍 Global: Freezer D
 st.plotly_chart(global_freezer_chart, use_container_width=True)
 
 
+# ✅ Route logic
+if "user" not in st.session_state or not st.session_state["user"]:
+    show_login_page()
+else:
+    show_main_app()
