@@ -28,7 +28,8 @@ def show_main_app():
     role = user.get("role", "Technician")
     st.sidebar.markdown(f"🛡 Role: `{role}`")
 
-    if st.sidebar.button("🚪 Logout", key="logout_button"):
+    if st.sidebar.button("🚪 Logout", key=f"logout_button_{user['email']}"):
+
         logout_user()
         st.experimental_rerun()
 
