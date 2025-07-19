@@ -17,8 +17,9 @@ if "user" not in st.session_state or not st.session_state["user"]:
     st.title("🔐 Login to Smart Biospecimen Tracker")
     email = st.text_input("Email")
     password = st.text_input("Password", type="password")
-    if st.button("Login"):
+    if st.button("Login", key="login_button"):
         login_user(email, password)
+
 else:
     # ✅ Show logged-in app
     user = st.session_state["user"]
@@ -37,15 +38,14 @@ else:
     st.title("🧬 Smart Biospecimen Lifecycle Tracker")
     st.subheader("📦 Register New Sample")
 
-
-# ✅ Log function (add this here)
-def log_sample_activity(sample_id, action, details):
-    log_entry = {
-        "action": action,
-        "details": details,
-        "timestamp": datetime.now().isoformat()
-    }
-    db.collection("samples").document(sample_id).collection("activity_log").add(log_entry)
+    # ✅ Log function (MUST be inside the `else` block)
+    def log_sample_activity(sample_id, action, details):
+        log_entry = {
+            "action": action,
+            "details": details,
+            "timestamp": datetime.now().isoformat()
+        }
+        db.collection("samples").document(sample_id).collection("activity_log").add(log_entry)
 
 # PDF generation
 from reportlab.lib.pagesizes import letter
